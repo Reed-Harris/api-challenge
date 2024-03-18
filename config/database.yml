@@ -80,5 +80,5 @@ test:
 production:
   <<: *default
   database: api_challenge_production
-  username: api_challenge
+  username: <%= ENV["API_CHALLENGE_DATABASE_USERNAME"] %>
   password: <%= ENV["API_CHALLENGE_DATABASE_PASSWORD"] %>
