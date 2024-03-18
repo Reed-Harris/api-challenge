@@ -45,6 +45,9 @@ group :development, :test do
   # Allow for easy debugging
   gem 'pry', '~> 0.14.2'
   gem 'pry-nav', '~> 1.0.0'
+
+  # Allow for testing
+  gem 'rspec-rails', '~> 6.1.0'
 end
 
 group :development do
