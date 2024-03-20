@@ -48,6 +48,7 @@ group :development, :test do
 
   # Allow for testing
   gem 'rspec-rails', '~> 6.1.0'
+  gem 'factory_bot_rails', '~> 6.4.3'
 end
 
 group :development do
