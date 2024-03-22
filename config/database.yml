@@ -14,6 +14,8 @@
 #
 default: &default
   adapter: postgresql
+  username: <%= ENV['API_CHALLENGE_DATABASE_USERNAME'] %>
+  password: <%= ENV['API_CHALLENGE_DATABASE_PASSWORD'] %>
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
@@ -80,5 +82,3 @@ test:
 production:
   <<: *default
   database: api_challenge_production
-  username: <%= ENV["API_CHALLENGE_DATABASE_USERNAME"] %>
-  password: <%= ENV["API_CHALLENGE_DATABASE_PASSWORD"] %>
