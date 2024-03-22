@@ -65,19 +65,19 @@ RSpec.describe 'Applications', type: :request do
         child1a = create(:node, parent: @root)
         child1b = create(:node, parent: @root)
 
-        child2a = create(:node, parent: child1a)
+        _child2a = create(:node, parent: child1a)
         @child2b = create(:node, parent: child1a) # lowest common ancestor
         child2c = create(:node, parent: child1b)
 
         child3a = create(:node, parent: @child2b)
         child3b = create(:node, parent: @child2b)
-        child3c = create(:node, parent: child2c)
+        _child3c = create(:node, parent: child2c)
 
         child4a = create(:node, parent: child3a) # node a
         child4b = create(:node, parent: child3b)
         child4c = create(:node, parent: child3b)
 
-        child5a = create(:node, parent: child4b)
+        _child5a = create(:node, parent: child4b)
         child5b = create(:node, parent: child4c) # node b
 
         # Make request
@@ -160,12 +160,12 @@ RSpec.describe 'Applications', type: :request do
         it 'should create the nodes specified in the provided file' do
           expect(Node.count).to eq(7)
           expect(Node.find_by(id: 1).parent_id).to be_nil
-          expect(Node.find_by(id: 2).parent_id).to eq 1
-          expect(Node.find_by(id: 3).parent_id).to eq 1
-          expect(Node.find_by(id: 4).parent_id).to eq 2
-          expect(Node.find_by(id: 5).parent_id).to eq 2
-          expect(Node.find_by(id: 6).parent_id).to eq 3
-          expect(Node.find_by(id: 7).parent_id).to eq 3
+          expect(Node.find_by(id: 2).parent_id).to eq(1)
+          expect(Node.find_by(id: 3).parent_id).to eq(1)
+          expect(Node.find_by(id: 4).parent_id).to eq(2)
+          expect(Node.find_by(id: 5).parent_id).to eq(2)
+          expect(Node.find_by(id: 6).parent_id).to eq(3)
+          expect(Node.find_by(id: 7).parent_id).to eq(3)
           expect(response).to have_http_status(:ok)
           expect(@json_message).to eq('Successfully seeded nodes from CSV!')
         end
@@ -184,7 +184,7 @@ RSpec.describe 'Applications', type: :request do
     end
 
     it 'should delete all nodes from the system' do
-      expect(Node.count).to eq 0
+      expect(Node.count).to eq(0)
       expect(response).to have_http_status(:ok)
       expect(@json_message).to eq('All nodes have been successfully deleted. You may now use /seed_nodes_from_csv?path=<path/to/csv> to re-seed node data.')
     end

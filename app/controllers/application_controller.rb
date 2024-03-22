@@ -1,9 +1,6 @@
 require 'csv'
 
 class ApplicationController < ActionController::API
-    #-------------------------#
-    #      API ENDPOINTS      #
-    #-------------------------#
     def common_ancestor
         node_a = Node.find_by(id: params[:a])
         node_b = Node.find_by(id: params[:b])
@@ -20,8 +17,8 @@ class ApplicationController < ActionController::API
         end
 
         # Build paths from the root to each of the specified nodes
-        path_a = find_path_from_root(node_a)
-        path_b = find_path_from_root(node_b)
+        path_a = node_a.find_path_from_root
+        path_b = node_b.find_path_from_root
 
         # Use these paths to determine the lowest common ancestor, as well as its depth
         lowest_common_ancestor = nil
@@ -75,20 +72,5 @@ class ApplicationController < ActionController::API
     rescue StandardError => error
         render status: :internal_server_error,
                json: { message: "An error occurred while attempting to delete nodes: #{error.message}" }
-    end
-
-    #-------------------------#
-    #    PRIVATE FUNCTIONS    #
-    #-------------------------#
-    private
-
-    # No matter what, we add the current node to the path being built
-    #   If the current node has a parent, we want to use recursion to move further up the tree toward the root
-    #   If the current node does NOT have a parent, it is the root, so the path is reversed (now the root will be at the beginning) and then returned
-    def find_path_from_root(node, path = [])
-        path << node.id
-        return path.reverse unless node.parent
-
-        find_path_from_root(node.parent, path)
     end
 end
