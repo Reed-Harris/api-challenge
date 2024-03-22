@@ -109,55 +109,157 @@ RSpec.describe 'Applications', type: :request do
     end
   end
 
-  describe 'POST /seed_nodes_from_csv' do
-    context 'with nodes already present in the system' do
+  describe 'GET /birds' do
+    context 'with invalid id parameters' do
       before do
-        # Generate a node which will prevent the seeding process
-        create(:node)
+        # Generate a set of nodes
+        root = create(:node)
+        child1 = create(:node, parent: root)
+        child2 = create(:node, parent: root)
+
+        # Ensure that the parameter, a, is NOT equal to any node id
+        @a = nil
+        loop do
+          @a = rand(1..1000)
+          break unless [root.id, child1.id, child2.id].include?(@a)
+        end
 
         # Make request
-        post seed_nodes_from_csv_path(path: 'spec/fixtures/nodes.csv')
+        get birds_path(node_ids: [@a, root.id, child1.id, child2.id])
         @json_message = JSON.parse(response.body)['message']
       end
 
       it 'should return an appropriate error message' do
         expect(response).to have_http_status(:bad_request)
-        expect(@json_message).to eq('Node data already seeded. To avoid data complications, please execute /delete_all_nodes before attempting to re-seed node data.')
+        expect(@json_message).to eq("One or more invalid node ids provided. Please replace the following ids with valid node ids: #{@a}")
       end
     end
 
-    context 'with no nodes present in the system' do
+    context 'with valid id parameters' do
       before do
-        # Ensure no nodes are present
+        # Generate a set of nodes for two trees, grouped by tree then depth
+        #       root1                root2*
+        #      /     \              /     \
+        #    1a       1b*         1c       1d
+        #   /  \     /  \        /  \     /  \
+        # 2a*   2b 2c    2d*   2e    2f 2g    2h
+        root1 = create(:node)
+
+        child1a = create(:node, parent: root1)
+        child1b = create(:node, parent: root1) # included in node_ids parameter
+
+        child2a = create(:node, parent: child1a) # included in node_ids parameter
+        child2b = create(:node, parent: child1a)
+        child2c = create(:node, parent: child1b)
+        child2d = create(:node, parent: child1b) # included in node_ids parameter
+
+        root2 = create(:node) # included in node_ids parameter
+
+        child1c = create(:node, parent: root2)
+        child1d = create(:node, parent: root2)
+
+        child2e = create(:node, parent: child1c)
+        child2f = create(:node, parent: child1c)
+        child2g = create(:node, parent: child1d)
+        child2h = create(:node, parent: child1d)
+
+        # Generate a set of birds for these trees, grouped by node
+        #            ----root1----                           ----root2----
+        #           /    (1,2)    \                         /     (8)*     \
+        #   (3,4) 1a               1b ()               () 1c                1d
+        #        /  \             /  \                   /  \              /  \
+        # *(5) 2a    2b ()   () 2c    2d (6,7)*     () 2e    2f ()  *(9) 2g    2h (10)*
+        bird1 = create(:bird, node: root1)
+        bird2 = create(:bird, node: root1)
+
+        bird3 = create(:bird, node: child1a)
+        bird4 = create(:bird, node: child1a)
+
+        bird5 = create(:bird, node: child2a) # expected in response
+
+        bird6 = create(:bird, node: child2d) # expected in response
+        bird7 = create(:bird, node: child2d) # expected in response
+
+        bird8 = create(:bird, node: root2) # expected in response
+
+        bird9 = create(:bird, node: child2g) # expected in response
+
+        bird10 = create(:bird, node: child2h) # expected in response
+
+        # Declare expected input and output
+        node_ids = [child1b.id, child2a.id, child2d.id, root2.id]
+        @bird_ids = [bird5.id, bird6.id, bird7.id, bird8.id, bird9.id, bird10.id]
+
+        # Make request
+        get birds_path(node_ids: node_ids)
+        @json_message = JSON.parse(response.body)['message']
+      end
+
+      it 'should return the appropriate bird ids' do
+        expect(response).to have_http_status(:ok)
+        expect(@json_message).to eq("The ids for the birds which belong to the provided nodes or any of their descendants are: #{@bird_ids.join(', ')}")
+      end
+    end
+  end
+
+  describe 'POST /seed_data_from_csv' do
+    context 'with data already present in the system' do
+      before do
+        # Generate a node which will prevent the seeding process
+        create(:node)
+
+        # Make request
+        post seed_data_from_csv_path(node_path: 'spec/fixtures/nodes.csv', bird_path: 'spec/fixtures/birds.csv')
+        @json_message = JSON.parse(response.body)['message']
+      end
+
+      it 'should return an appropriate error message' do
+        expect(response).to have_http_status(:bad_request)
+        expect(@json_message).to eq('Data already seeded. To avoid data complications, please execute /delete_all_data before attempting to re-seed data.')
+      end
+    end
+
+    context 'with no data present in the system' do
+      before do
+        # Ensure no nodes or birds are present
+        Bird.destroy_all
         Node.destroy_all
       end
 
       context 'and an invalid file path provided' do
         before do
+          @invalid_path = 'spec/fixtures/invalid_file.csv'
+
           #Make request
-          post seed_nodes_from_csv_path(path: 'spec/fixtures/invalid_file.csv')
+          post seed_data_from_csv_path(node_path: @invalid_path, bird_path: 'spec/fixtures/birds.csv')
           @json_message = JSON.parse(response.body)['message']
         end
 
         it 'should return an appropriate error message' do
-          expect(response).to have_http_status(:internal_server_error)
-          expect(@json_message).to match(/An error occurred while attempting to seed nodes from CSV: /)
+          expect(response).to have_http_status(:bad_request)
+          expect(@json_message).to eq("One or more invalid file paths provided. Please replace the following paths with valid file paths: #{@invalid_path}")
         end
       end
 
       context 'and a valid file path provided' do
         before do
-          # Make request; the file specified here holds information representing the following tree:
+          # Make request; the node file specified here holds information representing the following tree:
           #      1  
           #    /   \
           #   2     3
           #  / \   / \
           # 4   5 6   7
-          post seed_nodes_from_csv_path(path: 'spec/fixtures/nodes.csv')
+          # And the bird file specified holds information adding the following birds to the tree:
+          #        -------1-------
+          #       /     (1,2)     \
+          #  (3) 2                 3 (4,5)
+          #     / \               / \
+          # () 4   5 (6)   (7,8) 6   7 ()
+          post seed_data_from_csv_path(node_path: 'spec/fixtures/nodes.csv', bird_path: 'spec/fixtures/birds.csv')
           @json_message = JSON.parse(response.body)['message']
         end
 
-        it 'should create the nodes specified in the provided file' do
+        it 'should create the data specified in the provided files' do
           expect(Node.count).to eq(7)
           expect(Node.find_by(id: 1).parent_id).to be_nil
           expect(Node.find_by(id: 2).parent_id).to eq(1)
@@ -166,27 +268,40 @@ RSpec.describe 'Applications', type: :request do
           expect(Node.find_by(id: 5).parent_id).to eq(2)
           expect(Node.find_by(id: 6).parent_id).to eq(3)
           expect(Node.find_by(id: 7).parent_id).to eq(3)
+
+          expect(Bird.count).to eq(8)
+          expect(Bird.find_by(id: 1).node_id).to eq(1)
+          expect(Bird.find_by(id: 2).node_id).to eq(1)
+          expect(Bird.find_by(id: 3).node_id).to eq(2)
+          expect(Bird.find_by(id: 4).node_id).to eq(3)
+          expect(Bird.find_by(id: 5).node_id).to eq(3)
+          expect(Bird.find_by(id: 6).node_id).to eq(5)
+          expect(Bird.find_by(id: 7).node_id).to eq(6)
+          expect(Bird.find_by(id: 8).node_id).to eq(6)
+
           expect(response).to have_http_status(:ok)
-          expect(@json_message).to eq('Successfully seeded nodes from CSV!')
+          expect(@json_message).to eq('Successfully seeded data from CSV!')
         end
       end
     end
   end
 
-  describe 'DELETE /delete_all_nodes' do
+  describe 'DELETE /delete_all_data' do
     before do
-      # Generate nodes to be deleted
+      # Generate data to be deleted
       create_list(:node, 5)
+      create_list(:bird, 3, node_id: Node.first.id)
 
       # Make request
-      delete delete_all_nodes_path
+      delete delete_all_data_path
       @json_message = JSON.parse(response.body)['message']
     end
 
-    it 'should delete all nodes from the system' do
+    it 'should delete all data from the system' do
       expect(Node.count).to eq(0)
+      expect(Bird.count).to eq(0)
       expect(response).to have_http_status(:ok)
-      expect(@json_message).to eq('All nodes have been successfully deleted. You may now use /seed_nodes_from_csv?path=<path/to/csv> to re-seed node data.')
+      expect(@json_message).to eq('All data has been successfully deleted. You may now use /seed_data_from_csv?node_path=<path/to/nodes>&bird_path=<path/to/birds> to re-seed data.')
     end
   end
 end

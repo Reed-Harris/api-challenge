@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   get 'common_ancestor' => 'application#common_ancestor'
-  post 'seed_nodes_from_csv' => 'application#seed_nodes_from_csv'
-  delete 'delete_all_nodes' => 'application#delete_all_nodes'
+  get 'birds' => 'application#birds'
+  post 'seed_data_from_csv' => 'application#seed_data_from_csv'
+  delete 'delete_all_data' => 'application#delete_all_data'
 end
