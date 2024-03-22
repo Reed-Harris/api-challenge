@@ -7,4 +7,8 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  get 'common_ancestor' => 'application#common_ancestor'
+  post 'seed_nodes_from_csv' => 'application#seed_nodes_from_csv'
+  delete 'delete_all_nodes' => 'application#delete_all_nodes'
 end
