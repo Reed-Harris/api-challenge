@@ -10,6 +10,7 @@ Rails.application.routes.draw do
 
   get 'common_ancestor' => 'application#common_ancestor'
   get 'birds' => 'application#birds'
+  post 'generate_csv_for_seeding' => 'application#generate_csv_for_seeding'
   post 'seed_data_from_csv' => 'application#seed_data_from_csv'
   delete 'delete_all_data' => 'application#delete_all_data'
 end
