@@ -23,7 +23,7 @@ RSpec.describe 'Applications', type: :request do
 
       it 'should return an appropriate error message' do
         expect(response).to have_http_status(:bad_request)
-        expect(@json_response).to eq({ 'message' => "One or more invalid parameter values provided. Please replace the following parameter values with valid node ids: #{@a}"})
+        expect(@json_response).to eq({ 'message' => "One or more invalid parameter values provided. Please replace the following parameter values with valid node ids: #{@a}" })
       end
     end
 
@@ -42,14 +42,14 @@ RSpec.describe 'Applications', type: :request do
 
       it 'should return null values' do
         expect(response).to have_http_status(:ok)
-        expect(@json_response).to eq({'root_id' => nil, 'lowest_common_ancestor' => nil, 'depth' => nil})
+        expect(@json_response).to eq({ 'root_id' => nil, 'lowest_common_ancestor' => nil, 'depth' => nil })
       end
     end
 
     context 'with id parameters present on the same tree' do
       before do
         # Generate nodes for a single tree, grouped by depth
-        #       root  
+        #       root
         #      /    \
         #    1a      1b
         #   /  \       \
@@ -87,7 +87,7 @@ RSpec.describe 'Applications', type: :request do
 
       it 'should return the id of the lowest common ancestor' do
         expect(response).to have_http_status(:ok)
-        expect(@json_response).to eq({'root_id' => @root.id, 'lowest_common_ancestor' => @child2b.id, 'depth' => 3})
+        expect(@json_response).to eq({ 'root_id' => @root.id, 'lowest_common_ancestor' => @child2b.id, 'depth' => 3 })
       end
     end
 
@@ -104,7 +104,7 @@ RSpec.describe 'Applications', type: :request do
 
       it 'should return that id as the lowest common ancestor' do
         expect(response).to have_http_status(:ok)
-        expect(@json_response).to eq({'root_id' => @root.id, 'lowest_common_ancestor' => @child.id, 'depth' => 2})
+        expect(@json_response).to eq({ 'root_id' => @root.id, 'lowest_common_ancestor' => @child.id, 'depth' => 2 })
       end
     end
   end
@@ -131,7 +131,7 @@ RSpec.describe 'Applications', type: :request do
 
       it 'should return an appropriate error message' do
         expect(response).to have_http_status(:bad_request)
-        expect(@json_response).to eq({'message' => "One or more invalid parameter values provided. Please replace the following parameter values with valid node ids: #{@a}"})
+        expect(@json_response).to eq({ 'message' => "One or more invalid parameter values provided. Please replace the following parameter values with valid node ids: #{@a}" })
       end
     end
 
@@ -149,8 +149,8 @@ RSpec.describe 'Applications', type: :request do
         child1b = create(:node, parent: root1) # included in node_ids parameter
 
         child2a = create(:node, parent: child1a) # included in node_ids parameter
-        child2b = create(:node, parent: child1a)
-        child2c = create(:node, parent: child1b)
+        _child2b = create(:node, parent: child1a)
+        _child2c = create(:node, parent: child1b)
         child2d = create(:node, parent: child1b) # included in node_ids parameter
 
         root2 = create(:node) # included in node_ids parameter
@@ -158,8 +158,8 @@ RSpec.describe 'Applications', type: :request do
         child1c = create(:node, parent: root2)
         child1d = create(:node, parent: root2)
 
-        child2e = create(:node, parent: child1c)
-        child2f = create(:node, parent: child1c)
+        _child2e = create(:node, parent: child1c)
+        _child2f = create(:node, parent: child1c)
         child2g = create(:node, parent: child1d)
         child2h = create(:node, parent: child1d)
 
@@ -169,11 +169,11 @@ RSpec.describe 'Applications', type: :request do
         #   (3,4) 1a               1b ()               () 1c                1d
         #        /  \             /  \                   /  \              /  \
         # *(5) 2a    2b ()   () 2c    2d (6,7)*     () 2e    2f ()  *(9) 2g    2h (10)*
-        bird1 = create(:bird, node: root1)
-        bird2 = create(:bird, node: root1)
+        _bird1 = create(:bird, node: root1)
+        _bird2 = create(:bird, node: root1)
 
-        bird3 = create(:bird, node: child1a)
-        bird4 = create(:bird, node: child1a)
+        _bird3 = create(:bird, node: child1a)
+        _bird4 = create(:bird, node: child1a)
 
         bird5 = create(:bird, node: child2a) # expected in response
 
@@ -191,13 +191,13 @@ RSpec.describe 'Applications', type: :request do
         @bird_ids = [bird5.id, bird6.id, bird7.id, bird8.id, bird9.id, bird10.id]
 
         # Make request
-        get birds_path(node_ids: node_ids)
+        get birds_path(node_ids:)
         @json_response = JSON.parse(response.body)
       end
 
       it 'should return the appropriate bird ids' do
         expect(response).to have_http_status(:ok)
-        expect(@json_response).to eq({'bird_ids' => @bird_ids})
+        expect(@json_response).to eq({ 'bird_ids' => @bird_ids })
       end
     end
   end
@@ -208,13 +208,17 @@ RSpec.describe 'Applications', type: :request do
         @invalid_number_of_trees = -1
 
         # Make request
-        post generate_csv_for_seeding_path(number_of_trees: @invalid_number_of_trees, number_of_nodes_per_tree: 25, number_of_birds_per_tree: 10, node_filename: 'nodes', bird_filename: 'birds')
+        post generate_csv_for_seeding_path(number_of_trees: @invalid_number_of_trees,
+                                           number_of_nodes_per_tree: 25,
+                                           number_of_birds_per_tree: 10,
+                                           node_filename: 'nodes',
+                                           bird_filename: 'birds')
         @json_response = JSON.parse(response.body)
       end
 
       it 'should return an appropriate error message' do
         expect(response).to have_http_status(:bad_request)
-        expect(@json_response).to eq({'message' => "One or more invalid parameter values provided. Please replace the following parameter values with positive integers: #{@invalid_number_of_trees}"})
+        expect(@json_response).to eq({ 'message' => "One or more invalid parameter values provided. Please replace the following parameter values with positive integers: #{@invalid_number_of_trees}" })
       end
     end
 
@@ -245,7 +249,11 @@ RSpec.describe 'Applications', type: :request do
           @expected_birds_file_length = total_number_of_birds + 1
 
           # Make request
-          post generate_csv_for_seeding_path(number_of_trees: number_of_trees, number_of_nodes_per_tree: number_of_nodes_per_tree, number_of_birds_per_tree: number_of_birds_per_tree, node_filename: node_filename, bird_filename: bird_filename)
+          post generate_csv_for_seeding_path(number_of_trees:,
+                                             number_of_nodes_per_tree:,
+                                             number_of_birds_per_tree:,
+                                             node_filename:,
+                                             bird_filename:)
 
           # Store results before temporary directory structure is destroyed
           nodes_file_path = File.join(temp_root, 'public/nodes.csv')
@@ -288,7 +296,7 @@ RSpec.describe 'Applications', type: :request do
 
       it 'should return an appropriate error message' do
         expect(response).to have_http_status(:bad_request)
-        expect(@json_response).to eq({'message' => 'Data already seeded. To avoid data complications, please execute /delete_all_data before attempting to re-seed data.'})
+        expect(@json_response).to eq({ 'message' => 'Data already seeded. To avoid data complications, please execute /delete_all_data before attempting to re-seed data.' })
       end
     end
 
@@ -303,21 +311,21 @@ RSpec.describe 'Applications', type: :request do
         before do
           @invalid_path = 'spec/fixtures/invalid_file.csv'
 
-          #Make request
+          # Make request
           post seed_data_from_csv_path(node_path: @invalid_path, bird_path: 'spec/fixtures/birds.csv')
           @json_response = JSON.parse(response.body)
         end
 
         it 'should return an appropriate error message' do
           expect(response).to have_http_status(:bad_request)
-          expect(@json_response).to eq({'message' => "One or more invalid parameter values provided. Please replace the following parameter values with valid file paths: #{@invalid_path}"})
+          expect(@json_response).to eq({ 'message' => "One or more invalid parameter values provided. Please replace the following parameter values with valid file paths: #{@invalid_path}" })
         end
       end
 
       context 'and a valid file path provided' do
         before do
           # Make request; the node file specified here holds information representing the following tree:
-          #      1  
+          #      1
           #    /   \
           #   2     3
           #  / \   / \
@@ -353,7 +361,7 @@ RSpec.describe 'Applications', type: :request do
           expect(Bird.find_by(id: 8).node_id).to eq(6)
 
           expect(response).to have_http_status(:ok)
-          expect(@json_response).to eq({'message' => 'Successfully seeded data from CSV!'})
+          expect(@json_response).to eq({ 'message' => 'Successfully seeded data from CSV!' })
         end
       end
     end
@@ -374,7 +382,7 @@ RSpec.describe 'Applications', type: :request do
       expect(Node.count).to eq(0)
       expect(Bird.count).to eq(0)
       expect(response).to have_http_status(:ok)
-      expect(@json_response).to eq({'message' => 'All data has been successfully deleted. You may now use /seed_data_from_csv?node_path=<path/to/nodes>&bird_path=<path/to/birds> to re-seed data.'})
+      expect(@json_response).to eq({ 'message' => 'All data has been successfully deleted. You may now use /seed_data_from_csv?node_path=<path/to/nodes>&bird_path=<path/to/birds> to re-seed data.' })
     end
   end
 end

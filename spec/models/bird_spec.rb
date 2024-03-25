@@ -12,7 +12,7 @@ RSpec.describe Bird, type: :model do
 
     it 'is valid with node specified' do
       node = create(:node)
-      expect(build(:bird, node: node)).to be_valid
+      expect(build(:bird, node:)).to be_valid
     end
   end
 end
